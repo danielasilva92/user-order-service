@@ -1,0 +1,32 @@
+version: 0.2
+
+env:
+  parameter-store:
+    DB_URL: /cloudstore/DB_URL
+    DB_USERNAME: /cloudstore/DB_USERNAME
+    DB_PASSWORD: /cloudstore/DB_PASSWORD
+    JWT_SECRET: /cloudstore/JWT_SECRET
+
+phases:
+  pre_build:
+    commands:
+      - echo Entered pre_build phase
+      - echo Build started on `date`
+
+  build:
+    commands:
+      - echo Building user-order-service
+      - mvn clean package -DskipTests
+      - echo Build completed
+
+  post_build:
+    commands:
+      - echo Packaging application
+
+artifacts:
+  files:
+    - target/user-order-service-0.0.1-SNAPSHOT.jar
+    - Dockerfile
+    - appspec.yml
+    - scripts/**/*
+  discard-paths: no

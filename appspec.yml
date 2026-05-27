@@ -1,0 +1,12 @@
+version: 0.0
+os: linux
+
+files:
+  - source: /
+    destination: /app/user-order-service
+
+hooks:
+  AfterInstall:
+    - location: scripts/start_server.sh
+      timeout: 180
+      runas: root
