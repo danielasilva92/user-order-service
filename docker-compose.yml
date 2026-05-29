@@ -1,0 +1,93 @@
+version: '3.8'
+
+services:
+
+  # ── MySQL databas ─────────────────────────────────
+  mysql:
+    image: mysql:8.0
+    container_name: cloudstore-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: secret
+      MYSQL_DATABASE: cloudstore_users
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-psecret" ]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    networks:
+      - cloudstore-network
+
+  # ── User/Order Service ────────────────────────────
+  user-order-service:
+    build:
+      context: ./user-order-service
+      dockerfile: Dockerfile
+    container_name: user-order-service
+    restart: unless-stopped
+    ports:
+      - "8081:8081"
+    environment:
+      DB_URL: jdbc:mysql://mysql:3306/cloudstore_users?createDatabaseIfNotExist=true
+      DB_USERNAME: root
+      DB_PASSWORD: secret
+      JWT_SECRET: da9rsoON2eZ3V1PpsGrP3frFPxIPnuEW9ogyJaQ4VEc
+      JWT_EXPIRATION: 86400000
+      PRODUCT_SERVICE_URL: http://product-service:5000
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - cloudstore-network
+
+  # ── Product Service ───────────────────────────────
+  product-service:
+    build:
+      context: ./fakeStoreAPI
+      dockerfile: Dockerfile
+    container_name: product-service
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    environment:
+      DB_URL: jdbc:mysql://mysql:3306/cloudstore_products?createDatabaseIfNotExist=true
+      DB_USERNAME: root
+      DB_PASSWORD: secret
+      DB_DRIVER: com.mysql.cj.jdbc.Driver
+      DB_DIALECT: org.hibernate.dialect.MySQLDialect
+      JWT_SECRET: da9rsoON2eZ3V1PpsGrP3frFPxIPnuEW9ogyJaQ4VEc
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - cloudstore-network
+
+  # ── React Frontend ────────────────────────────────
+  frontend:
+    build:
+      context: ./cloudstore-frontend
+      dockerfile: Dockerfile.frontend
+    container_name: cloudstore-frontend
+    restart: unless-stopped
+    ports:
+      - "3000:80"
+    environment:
+      REACT_APP_USER_URL: http://localhost:8081
+      REACT_APP_PRODUCT_URL: http://localhost:5000
+    depends_on:
+      - user-order-service
+      - product-service
+    networks:
+      - cloudstore-network
+
+volumes:
+  mysql-data:
+
+networks:
+  cloudstore-network:
+    driver: bridge
