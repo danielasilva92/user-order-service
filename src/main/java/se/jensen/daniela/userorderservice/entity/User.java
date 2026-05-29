@@ -5,7 +5,6 @@ import lombok.Data;
 import lombok.RequiredArgsConstructor;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Entity
 @Table(name = "users")
@@ -28,9 +27,6 @@ public class User {
     private String role = "ROLE_USER";
 
     private LocalDateTime createdAt = LocalDateTime.now();
-
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
-    private List<Order> orders;
 
 
 }

@@ -5,9 +5,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
-import se.jensen.daniela.userorderservice.dto.OrderRequest;
-import se.jensen.daniela.userorderservice.entity.Order;
+import se.jensen.daniela.userorderservice.entity.CustomerOrder;
+import se.jensen.daniela.userorderservice.entity.OrderItem;
 import se.jensen.daniela.userorderservice.entity.User;
+import se.jensen.daniela.userorderservice.order.CreateOrderItemRequest;
+import se.jensen.daniela.userorderservice.order.CreateOrderRequest;
 import se.jensen.daniela.userorderservice.product.Product;
 import se.jensen.daniela.userorderservice.product.ProductClient;
 import se.jensen.daniela.userorderservice.repository.OrderRepository;
@@ -30,21 +32,30 @@ public class OrderService {
                 .orElseThrow(() -> new RuntimeException("Användare hittades inte"));
     }
 
-    public Order createOrder(OrderRequest req) {
+    public CustomerOrder createOrder(CreateOrderRequest request) {
         User user = getCurrentUser();
-        List<Product> products = productClient.getProducts();
-        Product product = findProduct(products, req.getProductId());
 
-        Order order = new Order();
+        List<Product> products = productClient.getProducts();
+
+        CustomerOrder order = new CustomerOrder();
         order.setUser(user);
-        order.setProductId(req.getProductId());
-        order.setProductTitle(product.title());
-        order.setPrice(product.price());
-        order.setQuantity(req.getQuantity());
+
+        for (CreateOrderItemRequest itemRequest : request.items()) {
+            Product product = findProduct(products, itemRequest.productId());
+            OrderItem item = new OrderItem(
+                    product.id(),
+                    product.title(),
+                    product.price(),
+                    itemRequest.quantity()
+            );
+            order.addItem(item);
+        }
+
+
         return orderRepository.save(order);
     }
 
-    public List<Order> getMyOrders() {
+    public List<CustomerOrder> getMyOrders() {
 
         return orderRepository.findByUserId(getCurrentUser().getId());
     }
