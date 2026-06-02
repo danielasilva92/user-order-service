@@ -6,9 +6,11 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.server.ResponseStatusException;
 import se.jensen.daniela.userorderservice.dto.AuthResponse;
 import se.jensen.daniela.userorderservice.dto.LoginRequest;
 import se.jensen.daniela.userorderservice.dto.RegisterRequest;
@@ -70,10 +72,11 @@ public class AuthServiceTest {
     void register_kastar_exception_om_användarnamn_redan_finns() {
         when(userRepository.existsByUsername("daniela")).thenReturn(true);
 
-        RuntimeException ex = assertThrows(RuntimeException.class,
+        ResponseStatusException ex = assertThrows(ResponseStatusException.class,
                 () -> authService.register(registerRequest));
 
-        assertEquals("Användarnamnet är redan taget.", ex.getMessage());
+        assertEquals(HttpStatus.CONFLICT, ex.getStatusCode());
+        assertEquals("Användarnamnet är redan taget.", ex.getReason());
         verify(userRepository, never()).save(any());
     }
 
@@ -82,10 +85,11 @@ public class AuthServiceTest {
         when(userRepository.existsByUsername("daniela")).thenReturn(false);
         when(userRepository.existsByEmail("daniela@example.com")).thenReturn(true);
 
-        RuntimeException ex = assertThrows(RuntimeException.class,
+        ResponseStatusException ex = assertThrows(ResponseStatusException.class,
                 () -> authService.register(registerRequest));
 
-        assertEquals("E-posten är redan registrerad.", ex.getMessage());
+        assertEquals(HttpStatus.CONFLICT, ex.getStatusCode());
+        assertEquals("E-posten är redan registrerad.", ex.getReason());
         verify(userRepository, never()).save(any());
     }
 
