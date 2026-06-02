@@ -8,14 +8,14 @@ services:
     container_name: cloudstore-mysql
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: secret
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       MYSQL_DATABASE: cloudstore_users
     ports:
       - "3306:3306"
     volumes:
       - mysql-data:/var/lib/mysql
     healthcheck:
-      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-psecret" ]
+      test: [ "CMD-SHELL", "mysqladmin ping -h localhost -u root -p$$MYSQL_ROOT_PASSWORD" ]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -34,9 +34,9 @@ services:
       - "8081:8081"
     environment:
       DB_URL: jdbc:mysql://mysql:3306/cloudstore_users?createDatabaseIfNotExist=true
-      DB_USERNAME: root
-      DB_PASSWORD: secret
-      JWT_SECRET: da9rsoON2eZ3V1PpsGrP3frFPxIPnuEW9ogyJaQ4VEc
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
       JWT_EXPIRATION: 86400000
       PRODUCT_SERVICE_URL: http://product-service:5000
     depends_on:
@@ -56,11 +56,11 @@ services:
       - "5000:5000"
     environment:
       DB_URL: jdbc:mysql://mysql:3306/cloudstore_products?createDatabaseIfNotExist=true
-      DB_USERNAME: root
-      DB_PASSWORD: secret
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
       DB_DRIVER: com.mysql.cj.jdbc.Driver
       DB_DIALECT: org.hibernate.dialect.MySQLDialect
-      JWT_SECRET: da9rsoON2eZ3V1PpsGrP3frFPxIPnuEW9ogyJaQ4VEc
+      JWT_SECRET: ${JWT_SECRET}
     depends_on:
       mysql:
         condition: service_healthy
