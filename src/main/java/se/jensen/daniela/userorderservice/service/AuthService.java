@@ -1,10 +1,12 @@
 package se.jensen.daniela.userorderservice.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 import se.jensen.daniela.userorderservice.dto.AuthResponse;
 import se.jensen.daniela.userorderservice.dto.LoginRequest;
 import se.jensen.daniela.userorderservice.dto.RegisterRequest;
@@ -23,9 +25,9 @@ public class AuthService {
 
     public AuthResponse register(RegisterRequest req) {
         if (userRepository.existsByUsername(req.getUsername()))
-            throw new RuntimeException("Användarnamnet är redan taget.");
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Användarnamnet är redan taget.");
         if (userRepository.existsByEmail(req.getEmail()))
-            throw new RuntimeException("E-posten är redan registrerad.");
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "E-posten är redan registrerad.");
 
         User user = new User();
         user.setUsername(req.getUsername());
