@@ -59,7 +59,9 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of(allowedOriginsRaw.split(",")));
+        //Testar att öppn UPP ALLT för att se om det är en cors problem
+        config.setAllowedOrigins(List.of("*"));
+        // config.setAllowedOrigins(List.of(allowedOriginsRaw.split(",")));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);
