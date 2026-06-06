@@ -6,7 +6,7 @@ services:
     container_name: cloudstore-mysql
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_ROOT_PASSWORD: secret
       MYSQL_DATABASE: cloudstore_users
     ports:
       - "3306:3306"
@@ -31,12 +31,8 @@ services:
     ports:
       - "8081:8081"
     environment:
-      DB_URL: jdbc:mysql://mysql:3306/cloudstore_users?createDatabaseIfNotExist=true
-      DB_USERNAME: ${DB_USERNAME}
-      DB_PASSWORD: ${DB_PASSWORD}
+      SPRING_PROFILES_ACTIVE: dev
       JWT_SECRET: ${JWT_SECRET}
-      JWT_EXPIRATION: 86400000
-      PRODUCT_SERVICE_URL: http://product-service:5000
     depends_on:
       mysql:
         condition: service_healthy
@@ -53,12 +49,9 @@ services:
     ports:
       - "5000:5000"
     environment:
-      DB_URL: jdbc:mysql://mysql:3306/cloudstore_products?createDatabaseIfNotExist=true
-      DB_USERNAME: ${DB_USERNAME}
-      DB_PASSWORD: ${DB_PASSWORD}
-      DB_DRIVER: com.mysql.cj.jdbc.Driver
-      DB_DIALECT: org.hibernate.dialect.MySQLDialect
+      SPRING_PROFILES_ACTIVE: dev
       JWT_SECRET: ${JWT_SECRET}
+      FAKESTORE_URL: https://fakestoreapi.com
     depends_on:
       mysql:
         condition: service_healthy

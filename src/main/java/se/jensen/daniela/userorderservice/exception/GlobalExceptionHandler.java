@@ -38,7 +38,7 @@ public class GlobalExceptionHandler {
     }
 
     // Övriga RuntimeExceptions (t.ex. "Användarnamnet är redan taget") 400
-    @ExceptionHandler(RuntimeException.class)
+    @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, String>> handleRuntime(RuntimeException ex) {
         return ResponseEntity.badRequest().body(Map.of("error", ex.getMessage()));
 

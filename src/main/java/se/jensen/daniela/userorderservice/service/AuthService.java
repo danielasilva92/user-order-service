@@ -3,7 +3,9 @@ package se.jensen.daniela.userorderservice.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -39,9 +41,17 @@ public class AuthService {
     }
 
     public AuthResponse login(LoginRequest req) {
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(req.getUsername(), req.getPassword())
-        );
-        return new AuthResponse(jwtUtil.generateToken(req.getUsername()), req.getUsername());
+        try {
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            req.getUsername(),
+                            req.getPassword())
+            );
+        } catch (AuthenticationException e) {
+            throw new BadCredentialsException("Fel användernamn eller lösenord");
+        }
+        return new AuthResponse(
+                jwtUtil.generateToken(req.getUsername()),
+                req.getUsername());
     }
 }
