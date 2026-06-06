@@ -3,13 +3,10 @@ name: CI/CD - user-order-service
 on:
   push:
     branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
 
 jobs:
-  build-test-push:
+  build-test-deploy:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -21,24 +18,39 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      # Bygger projektet OCH kör testerna
-      - name: Build and run tests
-        run: mvn -B package --file pom.xml
+      - name: Build and test
+        run: mvn -B clean package --file pom.xml
 
-      # Bygg och pusha Docker image till DockerHub
       - name: Log in to Docker Hub
-        if: github.event_name == 'push'
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Build and push Docker image
-        if: github.event_name == 'push'
         uses: docker/build-push-action@v6
         with:
           context: .
           push: true
-          tags: |
-            ${{ secrets.DOCKERHUB_USERNAME }}/user-order-service:latest
-            ${{ secrets.DOCKERHUB_USERNAME }}/user-order-service:${{ github.sha }}
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/user-order-service:latest
+
+      - name: Deploy to EC2 via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            docker pull ${{ secrets.DOCKERHUB_USERNAME }}/user-order-service:latest
+            docker stop user-order-service || true
+            docker rm user-order-service || true
+            docker run -d --name user-order-service --restart always -p 8081:8081 \
+              -e SPRING_PROFILES_ACTIVE=prod \
+              -e DB_URL="jdbc:mysql://cloudstore-db.cnegcciaanlr.eu-north-1.rds.amazonaws.com:3306/cloudstore_users?createDatabaseIfNotExist=true" \
+              -e DB_USERNAME="admin" \
+              -e DB_PASSWORD="${{ secrets.DB_PASSWORD }}" \
+              -e JWT_SECRET="${{ secrets.JWT_SECRET }}" \
+              -e JWT_EXPIRATION="86400000" \
+              -e CORS_ALLOWED_ORIGINS="http://localhost:3000,https://cloudstore-frontend.onrender.com" \
+              -e PRODUCT_SERVICE_URL="http://yahyatesting-env.eba-sarnymwd.eu-north-1.elasticbeanstalk.com" \
+              ${{ secrets.DOCKERHUB_USERNAME }}/user-order-service:latest
