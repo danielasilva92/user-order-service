@@ -37,10 +37,12 @@ public class GlobalExceptionHandler {
                 .body(Map.of("error", ex.getReason() != null ? ex.getReason() : "Fel"));
     }
 
-    // Övriga RuntimeExceptions (t.ex. "Användarnamnet är redan taget") 400
+    // returnera 500 för okända fel
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<Map<String, String>> handleRuntime(RuntimeException ex) {
-        return ResponseEntity.badRequest().body(Map.of("error", ex.getMessage()));
-
+    public ResponseEntity<Map<String, String>> handleGeneric(Exception ex) {
+        return ResponseEntity.internalServerError()
+                .body(Map.of("error", "Något gick fel, försök igen"));
     }
+
+
 }
