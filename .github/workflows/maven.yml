@@ -52,5 +52,5 @@ jobs:
               -e JWT_SECRET="${{ secrets.JWT_SECRET }}" \
               -e JWT_EXPIRATION="86400000" \
               -e CORS_ALLOWED_ORIGINS="http://localhost:3000,https://cloudstore-frontend.onrender.com" \
-              -e PRODUCT_SERVICE_URL="http://yahyatesting-env.eba-sarnymwd.eu-north-1.elasticbeanstalk.com" \
+              -e PRODUCT_SERVICE_URL="http://fakestoreservice-env.eba-bemm72kr.eu-north-1.elasticbeanstalk.com" \
               ${{ secrets.DOCKERHUB_USERNAME }}/user-order-service:latest
