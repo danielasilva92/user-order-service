@@ -64,4 +64,4 @@ Vid varje push till `main` kör GitHub Actions en pipeline som bygger projektet,
 
 Tjänsten körs i en Docker-container på en AWS EC2-instans, bakom nginx som reverse proxy med HTTPS via Let's Encrypt. Databasen ligger i AWS RDS.
 
-Publik adress: https://cloudstore-daniela.duckdns.org
+Publik adress: https://cloudstore-frontend.onrender.com
